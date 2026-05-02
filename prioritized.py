@@ -1,5 +1,5 @@
 import time as timer
-from single_agent_planner2 import compute_heuristics, a_star, get_sum_of_cost
+from single_agent_planner import compute_heuristics, a_star, get_sum_of_cost
 
 
 class PrioritizedPlanningSolver(object):
@@ -34,6 +34,18 @@ class PrioritizedPlanningSolver(object):
         constraints.append({'agent': 2, 'loc': [(3,4)], 'timestep': 5})
         # edge constraint
         constraints.append({'agent': 1, 'loc': [(1,2), (1,3)],'timestep': 1})
+
+        # Block the direct conflict in the corridor: prevent agent 1 from entering the middle too early
+        constraints.append({'agent': 1, 'loc': [(1,3)], 'timestep': 2})
+
+        # Force agent 1 to go into the gap: prevent staying in corridor at that time
+        constraints.append({'agent': 1, 'loc': [(1,2), (1,3)], 'timestep': 2})
+
+        # Wait in the gap
+        constraints.append({'agent': 1, 'loc': [(2,3), (1,3)], 'timestep': 3})
+
+        # Avoid swap conflict
+        constraints.append({'agent': 1, 'loc': [(1,3), (1,4)], 'timestep': 3})
 
         for i in range(self.num_of_agents):  # Find path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
