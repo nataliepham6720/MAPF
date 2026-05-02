@@ -30,28 +30,32 @@ class PrioritizedPlanningSolver(object):
         result = []
         constraints = []
 
-        # vertex constraint
-        constraints.append({'agent': 2, 'loc': [(3,4)], 'timestep': 5})
-        # edge constraint
-        constraints.append({'agent': 1, 'loc': [(1,2), (1,3)],'timestep': 1})
+        # vertex constraint (1.2)
+        # constraints.append({'agent': 2, 'loc': [(3,4)], 'timestep': 5})
+        # edge constraint (1.3)
+        # constraints.append({'agent': 1, 'loc': [(1,2), (1,3)],'timestep': 1})
 
-        # Block the direct conflict in the corridor: prevent agent 1 from entering the middle too early
-        constraints.append({'agent': 1, 'loc': [(1,3)], 'timestep': 2})
-
-        # Force agent 1 to go into the gap: prevent staying in corridor at that time
-        constraints.append({'agent': 1, 'loc': [(1,2), (1,3)], 'timestep': 2})
-
-        # Wait in the gap
-        constraints.append({'agent': 1, 'loc': [(2,3), (1,3)], 'timestep': 3})
-
-        # Avoid swap conflict
-        constraints.append({'agent': 1, 'loc': [(1,3), (1,4)], 'timestep': 3})
+        #### 1.5 Constraints to obtain optimal solution without collision
+        # # Force leaving corridor at t=2
+        # constraints.append({'agent': 1, 'loc': [(1,3)], 'timestep': 2})
+        # # Prevent going forward instead of going down
+        # constraints.append({'agent': 1, 'loc': [(1,4)], 'timestep': 2})
+        # # Prevent oscillation backward
+        # constraints.append({'agent': 1, 'loc': [(1,3), (1,2)], 'timestep': 2})
+        # # Prevent jumping back into (1,4) too early
+        # constraints.append({'agent': 1, 'loc': [(1,4)], 'timestep': 3})
+        # Sum of costs:    8
+        # 0: [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5)], 
+        # 1: [(1, 2), (1, 3), (2, 3), (1, 3), (1, 4)]
+        ##################################
 
         for i in range(self.num_of_agents):  # Find path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, constraints)
             if path is None:
-                raise BaseException('No solutions')
+                # raise BaseException('No solutions')
+                print("No solutions")
+                return None
             result.append(path)
 
             ##############################
@@ -60,24 +64,25 @@ class PrioritizedPlanningSolver(object):
             #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
-            
-            # for j in range(i + 1, self.num_of_agents):
-            #     # Vertex constraints along the path
-            #     for t in range(len(path)):
-            #         constraints.append({
-            #             'agent': j,
-            #             'loc': [path[t]],
-            #             'timestep': t
-            #         })
+            for j in range(i + 1, self.num_of_agents):
+                # 2.1 Vertex constraints along the path
+                for t in range(len(path)):
+                    constraints.append({'agent': j, 'loc': [path[t]], 'timestep': t})
 
-            #     # Stay at goal once reached it
-            #     goal = path[-1]
-            #     for t in range(len(path), len(path) + 50):
-            #         constraints.append({
-            #             'agent': j,
-            #             'loc': [goal],
-            #             'timestep': t
-            #         })
+                # 2.2 Edge constraints
+                for t in range(len(path) - 1):
+                    u = path[t]
+                    v = path[t + 1]
+                    # Forward edge constraint
+                    constraints.append({'agent': j, 'loc': [u, v], 'timestep': t + 1})
+                    # Reverse edge constraint 
+                    constraints.append({'agent': j, 'loc': [v, u], 'timestep': t + 1})
+
+                
+                # 2.3 Stay at goal once reached it
+                goal = path[-1]
+                for t in range(len(path), len(path) + 50):
+                    constraints.append({'agent': j, 'loc': [goal], 'timestep': t})
             ##############################
 
         self.CPU_time = timer.time() - start_time

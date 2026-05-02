@@ -107,17 +107,15 @@ if __name__ == '__main__':
             paths = solver.find_solution()
         else:
             raise RuntimeError("Unknown solver!")
-
-        cost = get_sum_of_cost(paths)
-        result_file.write("{},{}\n".format(file, cost))
+        
+        if paths is not None:
+            cost = get_sum_of_cost(paths)
+            result_file.write("{},{}\n".format(file, cost))
 
 
         if not args.batch:
             print("***Test paths on a simulation***")
             animation = Animation(my_map, starts, goals, paths)
             animation.save("output1.3.mp4", 1.0)
-            # animation.show()
-            # from IPython.display import Video
-            # Video("output.mp4", embed=True)
 
     result_file.close()

@@ -191,5 +191,15 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             else:
                 closed_list[key] = child
                 push_node(open_list, child)
+        
+        ### 2.4 The solver did not previously terminate correctly and instead produced a long oscillating
+        # path because the search time horizon was unbounded, allowing the agent to delay. After maximum 
+        # time horizon based on the map size in A*, the solver correctly detects that no valid path exists
+        # and raises an exception indicating “No solutions.” 
+        MAX_T = len(my_map) * len(my_map[0]) * 2
+        curr = pop_node(open_list)
 
+        if curr['timestep'] > MAX_T:
+            return None
+            
     return None  # Failed to find solutions
