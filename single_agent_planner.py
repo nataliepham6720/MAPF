@@ -142,13 +142,14 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         # path because the search time horizon was unbounded, allowing the agent to delay. After maximum 
         # time horizon based on the map size in A*, the solver correctly detects that no valid path exists
         # and raises an exception indicating “No solutions.” 
-        MAX_T = len(my_map) * len(my_map[0]) * 2
-        if curr['timestep'] > MAX_T:
-            return None    
+        MAX_T = len(my_map) * len(my_map[0]) * 2 - 1
+        if curr['timestep'] +1 >= MAX_T:
+            # raise(BaseException("Solution does not exist."))
+            continue  
 
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        
+
         # Reason: The goal test condition was modified to ensure that reaching
         # the goal is only accepted if the agent can remain at the goal location 
         # without violating any future constraints. Specifically, after reaching
@@ -156,6 +157,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
         # (e.g., up to a fixed horizon). If any constraint prohibits the agent 
         # from being at the goal in the future, the goal state is not accepted
         # and the search continues.
+
         if curr['loc'] == goal_loc:
             constrained = False
 
